@@ -6,6 +6,11 @@
 
 ## Quick Start
 
+## to run the project directly 
+```
+agy-node.cmd server.js
+```
+
 ### Run the Server
 ```
 node server.js
