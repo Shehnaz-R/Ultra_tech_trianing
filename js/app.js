@@ -1828,11 +1828,30 @@ function renderHrRequests(state) {
 }
 
 function renderHrCalendar(state) {
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
   const activeBranchFilter = state.activeBranchFilter || 'all';
+
   let events = state.events;
+
+  // Filter by Branch
   if (activeBranchFilter !== 'all') {
     events = events.filter(e => (e.branch || '').toLowerCase() === activeBranchFilter.toLowerCase() || (e.venue || '').toLowerCase().includes(activeBranchFilter.toLowerCase()));
   }
+
+  // Filter by Department
+  if (activeDeptFilter !== 'all') {
+    const selectedDeptObj = state.departments.find(d => d.id === activeDeptFilter);
+    const selectedDeptName = selectedDeptObj ? selectedDeptObj.name : '';
+    events = events.filter(e => {
+      // Include if workshop is for All Departments or specifically matches selected department
+      if (!e.category || e.category === 'All Departments' || e.category.includes('Organization-Wide')) return true;
+      if (selectedDeptName && e.category.toLowerCase().includes(selectedDeptName.toLowerCase())) return true;
+      // Or if assigned candidates include someone from selected department
+      const assignedUsers = state.users.filter(u => (e.assignedUserIds || []).includes(u.id));
+      return assignedUsers.some(u => u.departmentId === activeDeptFilter);
+    });
+  }
+
   const approvedRequests = state.requests.filter(r => r.status === 'Approved');
 
   return `

@@ -551,7 +551,7 @@ export const ULTRATECH_DATA = {
     {
       id: "EVT-2026-01",
       title: "ISO/IEC 17025:2017 Laboratory Quality Management & Internal Auditing",
-      category: "Laboratory Quality & Accreditation",
+      category: "Environmental Media Monitoring & Lab Analysis",
       mode: "In-House",
       date: "2026-09-22",
       endDate: "2026-09-24",
@@ -565,7 +565,7 @@ export const ULTRATECH_DATA = {
     {
       id: "EVT-2026-02",
       title: "MoEF&CC Parivesh 2.0 & EIA Notification Regulatory Workshop",
-      category: "Environmental Regulations",
+      category: "Environmental Clearance & EIA",
       mode: "In-House",
       date: "2026-09-28",
       endDate: "2026-09-29",
@@ -579,7 +579,7 @@ export const ULTRATECH_DATA = {
     {
       id: "EVT-2026-03",
       title: "Advanced Gas Chromatography (GC-MS/MS) Volatile Organic Compounds Masterclass",
-      category: "Analytical Instrumentation",
+      category: "Chemical & Microbiological Lab Services",
       mode: "External",
       date: "2026-10-06",
       endDate: "2026-10-08",
@@ -593,7 +593,7 @@ export const ULTRATECH_DATA = {
     {
       id: "EVT-2026-04",
       title: "BRSR Core Assurance & Scope 1, 2, 3 Greenhouse Gas Accounting",
-      category: "Sustainability & ESG",
+      category: "Sustainability, Carbon & ESG Advisory",
       mode: "In-House",
       date: "2026-10-14",
       endDate: "2026-10-15",
