@@ -1502,20 +1502,11 @@ function renderHrHome(state) {
   return `
     <div class="space-y-5">
       
-      <!-- Top Title & Department Global Scope Filter -->
+      <!-- Top Title -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E4E1DA]">
         <div>
           <h1 class="text-xl font-bold text-[#14181F]">Corporate HR Dashboard & Governance</h1>
           <p class="text-xs text-gray-500">Pan-India Training Operations • UltraTech Environmental Consultancy & Laboratory</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-xs font-semibold text-gray-500 uppercase">Filter Scope:</label>
-          <select id="hr-scope-dept-filter" class="ops-select w-auto text-xs" onchange="window.app.setDepartmentFilter(this.value)">
-            <option value="all" ${activeDeptFilter === 'all' ? 'selected' : ''}>All 12 UltraTech Departments</option>
-            ${state.departments.map(d => `
-              <option value="${d.id}" ${activeDeptFilter === d.id ? 'selected' : ''}>${d.name}</option>
-            `).join('')}
-          </select>
         </div>
       </div>
 
@@ -1886,7 +1877,16 @@ function renderHrCalendar(state) {
 }
 
 function renderHrDirectory(state) {
-  const users = state.users;
+  const activeRoleFilter = state.directoryRoleFilter || 'all';
+  const searchQuery = (state.directorySearchQuery || '').toLowerCase().trim();
+
+  let users = state.users;
+  if (activeRoleFilter !== 'all') {
+    users = users.filter(u => u.role === activeRoleFilter);
+  }
+  if (searchQuery) {
+    users = users.filter(u => u.name.toLowerCase().includes(searchQuery) || u.position.toLowerCase().includes(searchQuery) || u.department.toLowerCase().includes(searchQuery));
+  }
 
   return `
     <div class="space-y-5">
@@ -1895,9 +1895,31 @@ function renderHrDirectory(state) {
           <h1 class="text-xl font-bold text-[#14181F]">Organization Employee Directory</h1>
           <p class="text-xs text-gray-500">Personnel profiles across 12 UltraTech departments with technical competencies and completion history.</p>
         </div>
-        <div class="text-xs text-[#2F7D5A] font-semibold bg-[#EDF7F2] border border-[#A3D9C1] px-2.5 py-1 rounded flex items-center gap-1.5">
+        <div class="text-xs text-[#2F7D5A] font-semibold bg-[#EDF7F2] border border-[#A3D9C1] px-2.5 py-1 rounded flex items-center gap-1.5 shrink-0">
           <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-          <span>Zero-Compensation Privacy Protection Active</span>
+          <span>Zero-Compensation Privacy Active</span>
+        </div>
+      </div>
+
+      <!-- Directory Filter Bar: Filter by Role (Employee / Head / HR) and Search -->
+      <div class="ops-panel p-3 bg-[#FBFBFA] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-gray-600 uppercase text-[10px]">Filter Personnel:</span>
+          
+          <div class="flex items-center gap-1 bg-white border border-[#E4E1DA] px-2 py-1 rounded shadow-xs">
+            <span class="text-[10px] font-bold text-gray-500 uppercase">Role:</span>
+            <select id="directory-role-filter" class="text-xs font-semibold text-[#14181F] bg-transparent outline-none cursor-pointer" onchange="window.app.handleDirectoryRoleFilter(this.value)">
+              <option value="all" ${activeRoleFilter === 'all' ? 'selected' : ''}>All Personnel Roles</option>
+              <option value="employee" ${activeRoleFilter === 'employee' ? 'selected' : ''}>Employees</option>
+              <option value="head" ${activeRoleFilter === 'head' ? 'selected' : ''}>Department Heads</option>
+              <option value="hr" ${activeRoleFilter === 'hr' ? 'selected' : ''}>HR Admins</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="relative flex items-center w-64">
+          <input type="text" id="directory-search-input" class="ops-input text-xs pl-8 py-1.5" placeholder="Search by name, title, or dept..." value="${state.directorySearchQuery || ''}" oninput="window.app.handleDirectorySearch(this.value)">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5"></i>
         </div>
       </div>
 
@@ -2591,6 +2613,29 @@ class App {
     store.state.activeDepartmentFilter = deptId;
     store.persistState();
     this.render();
+  }
+
+  // Handle Directory Role Filter
+  handleDirectoryRoleFilter(role) {
+    store.state.directoryRoleFilter = role;
+    store.persistState();
+    this.render();
+  }
+
+  // Handle Directory Real-time Search
+  handleDirectorySearch(query) {
+    store.state.directorySearchQuery = query;
+    store.persistState();
+    const mount = document.getElementById('view-mount');
+    if (mount && store.state.currentView === 'hr-directory') {
+      mount.innerHTML = renderHrDirectory(store.state);
+      const searchInput = document.getElementById('directory-search-input');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.setSelectionRange(query.length, query.length);
+      }
+      lucide.createIcons({ root: mount });
+    }
   }
 
   // Handle HR Global Topbar Branch Filter
