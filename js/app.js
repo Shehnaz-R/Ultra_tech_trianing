@@ -148,8 +148,11 @@ function updateTopBar(state) {
     scopeText.textContent = scopeInfo.scope;
   }
 
-  // HR / Admin Global Filter Dropdowns visibility (Requirement 1)
+  // HR / Admin Global Filter Dropdowns visibility & state sync
   const hrFilters = document.getElementById('hr-global-filters');
+  const deptSelect = document.getElementById('topbar-dept-filter');
+  const branchSelect = document.getElementById('topbar-branch-filter');
+
   if (hrFilters) {
     if (state.currentRole === 'hr') {
       hrFilters.classList.remove('hidden');
@@ -158,6 +161,13 @@ function updateTopBar(state) {
       hrFilters.classList.add('hidden');
       hrFilters.classList.remove('flex');
     }
+  }
+
+  if (deptSelect && state.activeDepartmentFilter) {
+    deptSelect.value = state.activeDepartmentFilter;
+  }
+  if (branchSelect && state.activeBranchFilter) {
+    branchSelect.value = state.activeBranchFilter;
   }
 
   // Active role buttons
@@ -1629,7 +1639,11 @@ function renderHrHome(state) {
 }
 
 function renderHrCycle(state) {
-  const submissions = state.cycle.departmentSubmissions;
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
+  let submissions = state.cycle.departmentSubmissions;
+  if (activeDeptFilter !== 'all') {
+    submissions = submissions.filter(s => s.deptId === activeDeptFilter);
+  }
 
   return `
     <div class="space-y-5">
@@ -1713,7 +1727,11 @@ function renderHrCycle(state) {
 }
 
 function renderHrRequests(state) {
-  const requests = state.requests;
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
+  let requests = state.requests;
+  if (activeDeptFilter !== 'all') {
+    requests = requests.filter(r => r.departmentId === activeDeptFilter);
+  }
   const commonRequests = requests.filter(r => r.isCommon && r.status !== 'Approved');
 
   return `
@@ -1810,7 +1828,11 @@ function renderHrRequests(state) {
 }
 
 function renderHrCalendar(state) {
-  const events = state.events;
+  const activeBranchFilter = state.activeBranchFilter || 'all';
+  let events = state.events;
+  if (activeBranchFilter !== 'all') {
+    events = events.filter(e => (e.branch || '').toLowerCase() === activeBranchFilter.toLowerCase() || (e.venue || '').toLowerCase().includes(activeBranchFilter.toLowerCase()));
+  }
   const approvedRequests = state.requests.filter(r => r.status === 'Approved');
 
   return `
@@ -1907,10 +1929,14 @@ function renderHrCalendar(state) {
 }
 
 function renderHrDirectory(state) {
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
   const activeRoleFilter = state.directoryRoleFilter || 'all';
   const searchQuery = (state.directorySearchQuery || '').toLowerCase().trim();
 
   let users = state.users;
+  if (activeDeptFilter !== 'all') {
+    users = users.filter(u => u.departmentId === activeDeptFilter);
+  }
   if (activeRoleFilter !== 'all') {
     users = users.filter(u => u.role === activeRoleFilter);
   }
@@ -1997,11 +2023,16 @@ function renderHrDirectory(state) {
 }
 
 function renderHrEscalations(state) {
-  // Dual sub-lists (§5.3):
-  // (a) sign-offs that passed the 7-day head deadline
-  // (b) requests/resubmissions an employee appealed after a head rejection
-  const overdueSignoffs = state.trainings.filter(t => t.status === 'Escalated' || (t.status === 'Pending Sign-off' && t.daysElapsed >= 7));
-  const appealedRequests = state.requests.filter(r => r.status === 'Escalated' && r.appealNote);
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
+
+  let overdueSignoffs = state.trainings.filter(t => t.status === 'Escalated' || (t.status === 'Pending Sign-off' && t.daysElapsed >= 7));
+  let appealedRequests = state.requests.filter(r => r.status === 'Escalated' && r.appealNote);
+
+  if (activeDeptFilter !== 'all') {
+    const userIdsInDept = state.users.filter(u => u.departmentId === activeDeptFilter).map(u => u.id);
+    overdueSignoffs = overdueSignoffs.filter(t => userIdsInDept.includes(t.userId));
+    appealedRequests = appealedRequests.filter(r => r.departmentId === activeDeptFilter);
+  }
 
   return `
     <div class="space-y-5">
@@ -2149,7 +2180,13 @@ function renderHrEscalations(state) {
 }
 
 function renderHrPromotions(state) {
-  const flags = state.promotionFlags;
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
+
+  let flags = state.promotionFlags;
+  if (activeDeptFilter !== 'all') {
+    const userIdsInDept = state.users.filter(u => u.departmentId === activeDeptFilter).map(u => u.id);
+    flags = flags.filter(f => userIdsInDept.includes(f.userId));
+  }
 
   return `
     <div class="space-y-5">
