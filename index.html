@@ -520,9 +520,18 @@
             <input type="number" id="evt-capacity" class="ops-input" value="20" min="1" max="100" required>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-[#14181F] mb-1">Venue / Platform <span class="text-red-500">*</span></label>
-            <input type="text" id="evt-venue" class="ops-input" value="Central Lab Training Hall, Thane" required>
+            <label class="block text-xs font-semibold text-[#14181F] mb-1">Branch / Location <span class="text-red-500">*</span></label>
+            <select id="evt-branch" class="ops-select" required>
+              <option value="Thane">Thane (HQ & Central Lab)</option>
+              <option value="Pune">Pune Branch</option>
+              <option value="Kochi">Kochi Lab</option>
+              <option value="Kolkata">Kolkata Regional Office</option>
+            </select>
           </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#14181F] mb-1">Venue / Platform Detail <span class="text-red-500">*</span></label>
+          <input type="text" id="evt-venue" class="ops-input" value="Central Lab Training Hall, Thane" required>
         </div>
         <div>
           <label class="block text-xs font-semibold text-[#14181F] mb-1">Instructor / Certified Provider</label>
@@ -592,6 +601,47 @@
         <button id="btn-confirm-prm" class="btn-ops-primary bg-[#B8860B] hover:bg-[#92400E] border-[#92400E]">
           <i data-lucide="flag" class="w-3.5 h-3.5"></i>
           Confirm & Shortlist
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Candidate Allocation (Replaces browser prompt dialog - Image 1) -->
+  <div id="assign-candidates-modal" class="ops-modal-overlay">
+    <div class="ops-modal-box max-w-lg bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+      <div class="p-4 border-b border-[#E4E1DA] flex items-center justify-between bg-[#FBFBFA]">
+        <div class="flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-5 h-5 text-[#3B5BDB]"></i>
+          <div>
+            <h3 class="text-sm font-bold text-[#14181F]">Allocate Candidates to Training</h3>
+            <p id="assign-modal-event-title" class="text-xs text-gray-500 font-medium">Training Session</p>
+          </div>
+        </div>
+        <button id="btn-close-assign-modal" class="p-1 text-gray-400 hover:text-black rounded hover:bg-gray-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <p class="text-xs text-gray-600">Select an eligible employee candidate from the department roster to allocate to this training workshop:</p>
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Select Candidate</label>
+          <select id="assign-candidate-select" class="ops-select text-xs font-medium py-2">
+            <!-- Populated via JavaScript -->
+          </select>
+        </div>
+
+        <div id="assign-candidate-preview" class="p-3 bg-[#F7F6F3] border border-[#E4E1DA] rounded-lg text-xs space-y-1">
+          <!-- Live Candidate info preview -->
+        </div>
+      </div>
+
+      <div class="p-3 bg-[#FBFBFA] border-t border-[#E4E1DA] flex items-center justify-end gap-2">
+        <button id="btn-cancel-assign-candidate" class="btn-ops-secondary">Cancel</button>
+        <button id="btn-confirm-assign-candidate" class="btn-ops-primary">
+          <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+          Allocate Selected Candidate
         </button>
       </div>
     </div>

@@ -2322,7 +2322,9 @@ class App {
       const date = document.getElementById('evt-date').value;
       const endDate = document.getElementById('evt-end-date').value;
       const capacity = document.getElementById('evt-capacity').value;
-      const venue = document.getElementById('evt-venue').value;
+      const branch = document.getElementById('evt-branch')?.value || 'Thane';
+      const venueDetail = document.getElementById('evt-venue').value;
+      const venue = `${venueDetail} (${branch})`;
       const instructor = document.getElementById('evt-instructor').value;
       const hodApproval = document.getElementById('evt-hod-approval').checked;
       const reimbursement = document.getElementById('evt-reimbursement').value;
@@ -2334,6 +2336,7 @@ class App {
         date,
         endDate,
         capacity,
+        branch,
         venue,
         instructor,
         hodApprovalRequired: hodApproval,
@@ -2341,7 +2344,7 @@ class App {
       });
 
       document.getElementById('create-event-modal').classList.remove('open');
-      showToast(`Training event "${title}" created successfully!`, 'success');
+      showToast(`Training event "${title}" created successfully for ${branch} branch!`, 'success');
     });
 
     // Profile Dropdown Toggle (Image 3)
@@ -3210,13 +3213,59 @@ class App {
       return;
     }
 
-    const candidatePrompt = availableUsers.map((u, i) => `${i + 1}. ${u.name} (${u.department})`).join('\n');
-    const choice = prompt(`Select candidate number to allocate to "${evt.title}":\n\n${candidatePrompt}`);
-    const index = parseInt(choice, 10) - 1;
+    const modal = document.getElementById('assign-candidates-modal');
+    const titleEl = document.getElementById('assign-modal-event-title');
+    const selectEl = document.getElementById('assign-candidate-select');
+    const previewEl = document.getElementById('assign-candidate-preview');
 
-    if (!isNaN(index) && availableUsers[index]) {
-      store.assignEmployeesToEvent(eventId, [availableUsers[index].id]);
-      showToast(`${availableUsers[index].name} allocated to event!`, 'success');
+    if (titleEl) titleEl.textContent = `Event: "${evt.title}" (${evt.mode})`;
+
+    if (selectEl) {
+      selectEl.innerHTML = availableUsers.map(u => `
+        <option value="${u.id}">${u.name} — ${u.position} (${u.department})</option>
+      `).join('');
+
+      const updatePreview = () => {
+        const selectedId = selectEl.value;
+        const u = availableUsers.find(user => user.id === selectedId);
+        if (u && previewEl) {
+          previewEl.innerHTML = `
+            <div class="flex items-center justify-between font-bold text-gray-900">
+              <span>${u.name}</span>
+              <span class="text-[10px] bg-blue-50 text-[#3B5BDB] px-2 py-0.5 rounded border border-blue-200">${u.position}</span>
+            </div>
+            <p class="text-gray-500 text-[11px]">Department: ${u.department}</p>
+            <p class="text-gray-500 text-[11px]">Tenure: ${u.tenureYears} Years • Completed: ${u.completedCount || 0} trainings</p>
+          `;
+        }
+      };
+
+      selectEl.onchange = updatePreview;
+      updatePreview();
+    }
+
+    modal?.classList.add('open');
+
+    // Action handlers
+    const closeBtn = document.getElementById('btn-close-assign-modal');
+    const cancelBtn = document.getElementById('btn-cancel-assign-candidate');
+    const confirmBtn = document.getElementById('btn-confirm-assign-candidate');
+
+    const closeModal = () => modal?.classList.remove('open');
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+
+    if (confirmBtn) {
+      confirmBtn.onclick = () => {
+        const selectedId = selectEl.value;
+        const candidate = availableUsers.find(u => u.id === selectedId);
+        if (candidate) {
+          store.assignEmployeesToEvent(eventId, [candidate.id]);
+          closeModal();
+          showToast(`${candidate.name} allocated to "${evt.title}"!`, 'success');
+          this.render();
+        }
+      };
     }
   }
 
