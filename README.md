@@ -1,4 +1,4 @@
-﻿# UltraTech Training Portal
+# UltraTech Training Portal
 **Internal Operations & Training Management System**
 > UltraTech Environmental Consultancy & Laboratory — 37+ Years of Excellence
 
@@ -6,20 +6,23 @@
 
 ## Quick Start
 
-## to run the project directly 
-```
+### Run the Server (Auto-builds React & Serves)
+```bash
 agy-node.cmd server.js
-```
-
-### Run the Server
-```
-node server.js
+# or: node server.js
 ```
 Then open: **http://localhost:3000**
 
-### Run Tests
+### Rebuild React Source (Optional / Standalone)
+```bash
+agy-node.cmd build.js
+# Watch mode during development:
+agy-node.cmd build.js --watch
 ```
-node test.js
+
+### Run Tests
+```bash
+agy-node.cmd test.js
 ```
 
 ---
@@ -29,23 +32,33 @@ node test.js
 ```
 Project_training/
 |
-+-- index.html              # Main shell — top bar, sidebar, modals, mobile nav
-+-- server.js               # Zero-dependency Node.js static file server
-+-- test.js                 # Automated test suite (11 checks)
-+-- README.md               # This file
++-- index.html              # React 18 mount shell & test anchors
++-- server.js               # Zero-dependency Node.js static file server (auto-builds React)
++-- build.js                # Standalone Babel compiler for React JSX source
++-- test.js                 # Automated verification test suite (11 checks)
++-- README.md               # Documentation
 |
++-- src/                    # React 18 Modular Source Code
+|   +-- App.jsx             # Main App controller, routing, and shell
+|   +-- main.jsx            # React root mount and window.app bridge
+|   +-- context/            # StoreProvider and useStore reactive hooks
+|   +-- components/         # TopBar, Sidebar, MobileBottomNav, ToastContainer
+|   |   +-- modals/         # LoginModal, NotificationsDrawer, ProofDrawer, etc.
+|   +-- views/              # 23 Screen components
+|   |   +-- employee/       # 5 Employee screens
+|   |   +-- head/           # 6 Department Head screens
+|   |   +-- hr/             # 8 Corporate HR Admin screens
+|   +-- utils/              # SLA calculation, CSV export, Icon components
+|
++-- vendor/                 # Offline React 18, ReactDOM 18 & Babel standalone
 +-- css/
 |   +-- app.css             # Ink & Paper ops-board design system
-|
 +-- js/
 |   +-- data.js             # Seed data — 12 depts, 3 personas, trainings, requests
 |   +-- store.js            # Reactive state store with LocalStorage persistence
-|   +-- app.js              # View router, all 23 screen renderers, event handlers
-|
+|   +-- app.js              # Compiled production React application bundle
 +-- docs/
-    +-- implementation_plan.md   # Technical design & architecture decisions
-    +-- walkthrough.md           # Feature walkthrough & change log
-    +-- screen_audit.md          # Full screen checklist (23 screens, all done)
+    +-- screen_audit.md     # Full screen checklist (23 screens, all done)
 ```
 
 ---

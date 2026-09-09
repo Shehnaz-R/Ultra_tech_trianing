@@ -7,13 +7,14 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const BASE_DIR = __dirname;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
+  '.jsx': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -65,6 +66,26 @@ const server = http.createServer((req, res) => {
       }
     });
   });
+});
+
+// Auto-compile React source if build.js and src exist
+try {
+  if (fs.existsSync(path.join(BASE_DIR, 'src')) && fs.existsSync(path.join(BASE_DIR, 'build.js'))) {
+    const { build } = require('./build.js');
+    build();
+  }
+} catch (e) {
+  console.warn('[Server] Auto-build skipped:', e.message);
+}
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n⚠️  Port ${PORT} is already in use by another process.`);
+    console.error(`👉 Run on another port: $env:PORT=3001; agy-node.cmd server.js`);
+    console.error(`👉 Or close the existing server process using: Stop-Process -Name Antigravity\n`);
+  } else {
+    console.error('Server error:', err);
+  }
 });
 
 server.listen(PORT, () => {
