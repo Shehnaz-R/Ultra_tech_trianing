@@ -463,12 +463,8 @@ class Store {
     return true;
   }
 
-  // Calendar Event Creation & Employee Allocation
+  // Calendar Event Creation & Employee Allocation (Task: event/workshops - Normalized assignedUserIds)
   createEvent({ title, category, mode, date, endDate, capacity, venue, instructor, hodApprovalRequired = false, reimbursementPercent = 100, assignedUserIds = [] }) {
-    const assignedEmployees = this.state.users
-      .filter(u => assignedUserIds.includes(u.id))
-      .map(u => ({ id: u.id, name: u.name, dept: u.department }));
-
     const newEvt = {
       id: `EVT-2026-${String(this.state.events.length + 1).padStart(2, '0')}`,
       title,
@@ -481,21 +477,21 @@ class Store {
       instructor: instructor || 'Lead Specialist',
       hodApprovalRequired: mode === 'External' ? Boolean(hodApprovalRequired) : false,
       reimbursementPercent: mode === 'External' ? parseInt(reimbursementPercent, 10) : 100,
-      assignedUserIds,
-      assignedEmployees
+      assignedUserIds
     };
 
     this.state.events.unshift(newEvt);
 
     // If users assigned, create their upcoming training records
-    assignedEmployees.forEach(emp => {
+    const assignedUsers = this.state.users.filter(u => assignedUserIds.includes(u.id));
+    assignedUsers.forEach(emp => {
       const exists = this.state.trainings.find(t => t.userId === emp.id && t.title === title);
       if (!exists) {
         this.state.trainings.unshift({
           id: `TRN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
           userId: emp.id,
           userName: emp.name,
-          department: emp.dept,
+          department: emp.department,
           title,
           category: newEvt.category,
           mode: `${newEvt.mode} Training`,
@@ -520,12 +516,11 @@ class Store {
 
     const newIds = Array.from(new Set([...evt.assignedUserIds, ...userIds]));
     evt.assignedUserIds = newIds;
-    evt.assignedEmployees = this.state.users
-      .filter(u => newIds.includes(u.id))
-      .map(u => ({ id: u.id, name: u.name, dept: u.department }));
+    delete evt.assignedEmployees; // Remove legacy duplicate property if present
 
     // Update their trainings
-    evt.assignedEmployees.forEach(emp => {
+    const assignedUsers = this.state.users.filter(u => newIds.includes(u.id));
+    assignedUsers.forEach(emp => {
       const exists = this.state.trainings.find(t => t.userId === emp.id && t.title === evt.title);
       if (!exists) {
         this.state.trainings.unshift({

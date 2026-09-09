@@ -560,13 +560,7 @@ export const ULTRATECH_DATA = {
       instructor: "Dr. K.V. Ramanathan (Lead Assessor, NABL)",
       hodApprovalRequired: false,
       reimbursementPercent: 100,
-      assignedUserIds: ["user-emp-01", "user-emp-02", "user-emp-04", "user-emp-05"],
-      assignedEmployees: [
-        { id: "user-emp-01", name: "Rahul Sharma", dept: "Environmental Media Monitoring & Lab Analysis" },
-        { id: "user-emp-02", name: "Ananya Sen", dept: "Environmental Media Monitoring & Lab Analysis" },
-        { id: "user-emp-04", name: "Sneha Roy", dept: "Environmental Media Monitoring & Lab Analysis" },
-        { id: "user-emp-05", name: "Deepak Patel", dept: "Environmental Media Monitoring & Lab Analysis" }
-      ]
+      assignedUserIds: ["user-emp-01", "user-emp-02", "user-emp-04", "user-emp-05"]
     },
     {
       id: "EVT-2026-02",
@@ -580,11 +574,7 @@ export const ULTRATECH_DATA = {
       instructor: "Adv. Harish Bhat & EIA Technical Committee",
       hodApprovalRequired: false,
       reimbursementPercent: 100,
-      assignedUserIds: ["user-head-02", "user-eia-01", "user-eia-02"],
-      assignedEmployees: [
-        { id: "user-eia-01", name: "Vikrant Patil", dept: "Environmental Clearance & EIA" },
-        { id: "user-eia-02", name: "Pooja Hegde", dept: "Environmental Clearance & EIA" }
-      ]
+      assignedUserIds: ["user-head-02", "user-eia-01", "user-eia-02"]
     },
     {
       id: "EVT-2026-03",
@@ -598,10 +588,7 @@ export const ULTRATECH_DATA = {
       instructor: "Shimadzu Analytical Specialist Team",
       hodApprovalRequired: true,
       reimbursementPercent: 80,
-      assignedUserIds: ["user-emp-01"],
-      assignedEmployees: [
-        { id: "user-emp-01", name: "Rahul Sharma", dept: "Environmental Media Monitoring & Lab Analysis" }
-      ]
+      assignedUserIds: ["user-emp-01"]
     },
     {
       id: "EVT-2026-04",
@@ -615,10 +602,7 @@ export const ULTRATECH_DATA = {
       instructor: "Divya Krishnan (ESG Director)",
       hodApprovalRequired: false,
       reimbursementPercent: 100,
-      assignedUserIds: ["user-esg-01"],
-      assignedEmployees: [
-        { id: "user-esg-01", name: "Bhavna Swaminathan", dept: "Sustainability, Carbon & ESG Advisory" }
-      ]
+      assignedUserIds: ["user-esg-01"]
     }
   ],
 

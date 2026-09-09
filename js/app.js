@@ -1490,14 +1490,44 @@ function renderHeadReports(state) {
 // ------------------------------------------
 
 function renderHrHome(state) {
-  const activeDeptFilter = state.activeDepartmentFilter;
-  const filteredDepts = activeDeptFilter === 'all' 
-    ? state.departments 
-    : state.departments.filter(d => d.id === activeDeptFilter);
+  const activeDeptFilter = state.activeDepartmentFilter || 'all';
+  const activeBranchFilter = state.activeBranchFilter || 'all';
 
-  const reportingCount = state.cycle.departmentSubmissions.filter(s => s.status === 'Submitted').length;
-  const pendingApprovalsCount = state.requests.filter(r => r.status.includes('Pending')).length;
-  const openEscalationsCount = state.trainings.filter(t => t.status === 'Escalated').length + state.requests.filter(r => r.status === 'Escalated').length;
+  // Filter departments
+  let filteredDepts = state.departments;
+  if (activeDeptFilter !== 'all') {
+    filteredDepts = filteredDepts.filter(d => d.id === activeDeptFilter);
+  }
+
+  // Filter users by department and branch
+  let filteredUsers = state.users;
+  if (activeDeptFilter !== 'all') {
+    filteredUsers = filteredUsers.filter(u => u.departmentId === activeDeptFilter);
+  }
+
+  // Filter requests
+  let filteredRequests = state.requests;
+  if (activeDeptFilter !== 'all') {
+    filteredRequests = filteredRequests.filter(r => r.departmentId === activeDeptFilter);
+  }
+
+  // Filter submissions
+  let filteredSubmissions = state.cycle.departmentSubmissions;
+  if (activeDeptFilter !== 'all') {
+    filteredSubmissions = filteredSubmissions.filter(s => s.deptId === activeDeptFilter);
+  }
+
+  const reportingCount = filteredSubmissions.filter(s => s.status === 'Submitted').length;
+  const totalSubmissionsExpected = filteredSubmissions.length;
+  const pendingApprovalsCount = filteredRequests.filter(r => r.status.includes('Pending')).length;
+
+  let filteredTrainings = state.trainings;
+  if (activeDeptFilter !== 'all') {
+    const userIdsInDept = filteredUsers.map(u => u.id);
+    filteredTrainings = filteredTrainings.filter(t => userIdsInDept.includes(t.userId));
+  }
+
+  const openEscalationsCount = filteredTrainings.filter(t => t.status === 'Escalated').length + filteredRequests.filter(r => r.status === 'Escalated').length;
 
   return `
     <div class="space-y-5">
@@ -1510,11 +1540,11 @@ function renderHrHome(state) {
         </div>
       </div>
 
-      <!-- Company-Wide KPI Tiles (§5.3) -->
+      <!-- Company-Wide KPI Tiles (Updated by Global Filters) -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div class="ops-panel p-3.5">
           <span class="text-[11px] font-semibold text-gray-500 uppercase">Departments Reporting</span>
-          <div class="text-xl font-bold text-[#14181F] mt-1 tabular-nums">${reportingCount} / 12 Submissions</div>
+          <div class="text-xl font-bold text-[#14181F] mt-1 tabular-nums">${reportingCount} / ${totalSubmissionsExpected} Submissions</div>
         </div>
         <div class="ops-panel p-3.5">
           <span class="text-[11px] font-semibold text-gray-500 uppercase">Training Cycle</span>
@@ -1531,22 +1561,20 @@ function renderHrHome(state) {
           <span class="text-[11px] font-semibold text-gray-500 uppercase">Verified Completion Rate</span>
           <div class="text-xl font-bold text-[#2F7D5A] mt-1 tabular-nums">84.6% SLA</div>
         </div>
-        <div class="ops-panel p-3.5 ${openEscalationsCount > 0 ? 'bg-[#FEF2F2] border-[#FCA5A5]' : ''}">
-          <span class="text-[11px] font-semibold uppercase ${openEscalationsCount > 0 ? 'text-[#991B1B]' : 'text-gray-500'}">Open Escalations</span>
-          <div class="text-xl font-bold ${openEscalationsCount > 0 ? 'text-[#B3261E]' : 'text-gray-700'} mt-1 tabular-nums">
-            ${openEscalationsCount} Active Appeals
-          </div>
+        <div class="ops-panel p-3.5 border-l-4 border-l-[#B3261E] bg-[#FFF5F5]">
+          <span class="text-[11px] font-bold text-[#B3261E] uppercase">Open Escalations</span>
+          <div class="text-xl font-extrabold text-[#B3261E] mt-1 tabular-nums">${openEscalationsCount} Active Appeals</div>
         </div>
       </div>
 
-      <!-- Quick Action Modules -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <!-- Two-Column Governance Panels -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
-        <!-- Cycle Control Status Overview -->
+        <!-- Cycle Submissions Tracking -->
         <div class="ops-panel overflow-hidden">
           <div class="p-3.5 bg-[#FBFBFA] border-b border-[#E4E1DA] flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <i data-lucide="calendar-sync" class="w-4 h-4 text-[#3B5BDB]"></i>
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-[#3B5BDB]"></i>
               <h2 class="text-xs font-bold uppercase tracking-wider text-[#14181F]">Cycle Status & Reminders</h2>
             </div>
             <button class="text-xs text-[#3B5BDB] hover:underline font-medium" onclick="window.app.navigateTo('hr-cycle')">
@@ -1561,11 +1589,11 @@ function renderHrHome(state) {
               </span>
             </div>
             <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-              <div class="bg-[#2F7D5A] h-full" style="width: ${(reportingCount / 12) * 100}%"></div>
+              <div class="bg-[#2F7D5A] h-full" style="width: ${totalSubmissionsExpected > 0 ? (reportingCount / totalSubmissionsExpected) * 100 : 0}%"></div>
             </div>
             <div class="flex items-center justify-between text-[11px] text-gray-500">
               <span>${reportingCount} departments submitted</span>
-              <span>${12 - reportingCount} pending reminders</span>
+              <span>${totalSubmissionsExpected - reportingCount} pending reminders</span>
             </div>
           </div>
         </div>
@@ -1800,7 +1828,9 @@ function renderHrCalendar(state) {
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         ${events.map(evt => {
-          const filled = evt.assignedEmployees ? evt.assignedEmployees.length : 0;
+          const assignedUserIds = evt.assignedUserIds || [];
+          const assignedUsers = state.users.filter(u => assignedUserIds.includes(u.id));
+          const filled = assignedUsers.length;
           return `
             <div class="ops-panel p-4 space-y-3">
               <div class="flex items-start justify-between">
@@ -1836,11 +1866,11 @@ function renderHrCalendar(state) {
                 </div>
               </div>
 
-              <!-- Assigned employees pill list -->
+              <!-- Assigned employees pill list (Resolved dynamically via assignedUserIds - event/workshops task) -->
               <div>
                 <span class="text-[10px] font-bold uppercase text-gray-400 block mb-1">Assigned Candidates (${filled})</span>
                 <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
-                  ${evt.assignedEmployees && evt.assignedEmployees.length > 0 ? evt.assignedEmployees.map(emp => `
+                  ${assignedUsers.length > 0 ? assignedUsers.map(emp => `
                     <span class="text-[10px] bg-white border border-[#E4E1DA] px-2 py-0.5 rounded flex items-center gap-1">
                       <i data-lucide="user" class="w-2.5 h-2.5 text-[#3B5BDB]"></i>
                       ${emp.name}
