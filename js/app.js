@@ -148,6 +148,18 @@ function updateTopBar(state) {
     scopeText.textContent = scopeInfo.scope;
   }
 
+  // HR / Admin Global Filter Dropdowns visibility (Requirement 1)
+  const hrFilters = document.getElementById('hr-global-filters');
+  if (hrFilters) {
+    if (state.currentRole === 'hr') {
+      hrFilters.classList.remove('hidden');
+      hrFilters.classList.add('flex');
+    } else {
+      hrFilters.classList.add('hidden');
+      hrFilters.classList.remove('flex');
+    }
+  }
+
   // Active role buttons
   ['employee', 'head', 'hr'].forEach(r => {
     const btn = document.getElementById(`role-btn-${r}`);
@@ -1848,12 +1860,22 @@ function renderHrCalendar(state) {
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-[#E4E1DA] flex items-center justify-between">
-                <span class="text-[11px] text-gray-500">${evt.hodApprovalRequired ? '⚠️ Requires HOD Pre-approval' : 'Standard In-House Allocation'}</span>
-                <button class="btn-ops-secondary py-1 px-2 text-xs" onclick="window.app.openAssignCandidatesModal('${evt.id}')">
-                  <i data-lucide="user-plus" class="w-3 h-3 text-[#3B5BDB]"></i>
-                  Assign Candidates
-                </button>
+              <div class="pt-2 border-t border-[#E4E1DA] flex items-center justify-between flex-wrap gap-2">
+                <span class="text-[11px] text-gray-500">${evt.status === 'Cancelled' ? '🚫 Training Closed / Cancelled' : (evt.hodApprovalRequired ? '⚠️ Requires HOD Pre-approval' : 'Standard In-House Allocation')}</span>
+                <div class="flex items-center gap-2">
+                  ${evt.status === 'Cancelled' ? `
+                    <span class="status-pill status-rejected text-xs font-semibold">Cancelled</span>
+                  ` : `
+                    <button class="btn-ops-danger py-1 px-2.5 text-xs flex items-center gap-1" onclick="window.app.cancelTrainingEvent('${evt.id}')">
+                      <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                      <span>Cancel / Close Training</span>
+                    </button>
+                    <button class="btn-ops-secondary py-1 px-2 text-xs flex items-center gap-1" onclick="window.app.openAssignCandidatesModal('${evt.id}')">
+                      <i data-lucide="user-plus" class="w-3 h-3 text-[#3B5BDB]"></i>
+                      <span>Assign Candidates</span>
+                    </button>
+                  `}
+                </div>
               </div>
             </div>
           `;
@@ -2559,6 +2581,34 @@ class App {
       container.innerHTML = renderEmployeeRequest(store.state);
     }
     lucide.createIcons({ root: container });
+  }
+
+  // Handle HR Global Topbar Department Filter
+  handleTopbarDeptFilter(deptId) {
+    store.state.activeDepartmentFilter = deptId;
+    store.persistState();
+    this.render();
+  }
+
+  // Handle HR Global Topbar Branch Filter
+  handleTopbarBranchFilter(branch) {
+    store.state.activeBranchFilter = branch;
+    store.persistState();
+    alert(`Branch filter applied: ${branch === 'all' ? 'All Branches' : branch}`);
+    this.render();
+  }
+
+  // Cancel / Close Training Event (Requirement 3)
+  cancelTrainingEvent(eventId) {
+    const evt = store.state.events.find(e => e.id === eventId);
+    if (!evt) return;
+
+    if (confirm(`Are you sure you want to cancel / close the training workshop "${evt.title}"?`)) {
+      evt.status = 'Cancelled';
+      store.persistState();
+      alert(`Training "${evt.title}" has been closed / cancelled.`);
+      this.render();
+    }
   }
 
   // Profile Inline Skills / Projects
