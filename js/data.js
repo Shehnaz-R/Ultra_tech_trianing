@@ -15,7 +15,7 @@ export const ULTRATECH_DATA = {
 
   // The 12 UltraTech Departments
   departments: [
-    { id: "dept-01", name: "Environmental Media Monitoring & Lab Analysis", code: "EMM-LAB", headId: "user-head-01", headName: "Priya Nair", staffCount: 18, pendingSignoffs: 3, openRequests: 5 },
+    { id: "dept-01", name: "Environmental Media Monitoring & Lab Analysis", code: "EMM-LAB", headId: "user-head-01", headName: "Priya Nair", staffCount: 18, pendingSignoffs: 2, openRequests: 5 },
     { id: "dept-02", name: "Environmental Clearance & EIA", code: "EC-EIA", headId: "user-head-02", headName: "Dr. Rajeshwar Kulkarni", staffCount: 14, pendingSignoffs: 1, openRequests: 4 },
     { id: "dept-03", name: "Turnkey Engineering & Project Consultancy", code: "TEPC", headId: "user-head-03", headName: "Manish Verma", staffCount: 16, pendingSignoffs: 2, openRequests: 3 },
     { id: "dept-04", name: "STP / ETP Operation & Maintenance", code: "STP-ETP", headId: "user-head-04", headName: "Sanjay Deshmukh", staffCount: 22, pendingSignoffs: 4, openRequests: 6 },
@@ -252,12 +252,13 @@ export const ULTRATECH_DATA = {
       mode: "In-House Workshop",
       scheduledDate: "2026-08-10",
       endDate: "2026-08-11",
-      status: "Pending Sign-off",
+      status: "Completed",
       mandatory: true,
       provider: "National Safety Council (NSC) Certified Trainer",
       venue: "Safety Training Field, Thane",
-      submissionDate: "2026-09-04",
-      daysElapsed: 4, // 3 days remaining!
+      completedDate: "2026-09-04",
+      signoffDate: "2026-09-05",
+      signedOffBy: "Priya Nair",
       proof: {
         learnings: "Trained on neutralisation procedures for concentrated mineral acids and organophosphate spills. Practiced rapid deployment of absorbent booms and Level-B SCBA gear.",
         attendanceFile: "Attendance_Sheet_Hazmat_Spill_2026.pdf",

@@ -6,7 +6,7 @@
 
 import { ULTRATECH_DATA } from './data.js';
 
-const STORAGE_KEY = 'ultratech_training_ops_v1';
+const STORAGE_KEY = 'ultratech_training_ops_v2';
 
 class Store {
   constructor() {

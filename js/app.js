@@ -1459,8 +1459,8 @@ function TopBar({
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] font-semibold text-gray-500 uppercase tracking-wider",
     id: "scope-badge"
-  }, "Scope:"), /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-semibold text-[#14181F] truncate max-w-[220px]",
+  }, scopeInfo.badge, ":"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-semibold text-[#14181F] truncate max-w-[280px]",
     id: "scope-text"
   }, scopeInfo.scope)), /*#__PURE__*/React.createElement("div", {
     id: "hr-global-filters",
@@ -1551,8 +1551,8 @@ function TopBar({
     className: "text-xs font-bold text-[#14181F]"
   }, currentUser.name), /*#__PURE__*/React.createElement("span", {
     id: "topbar-user-role-label",
-    className: "text-[10px] text-gray-500 font-medium capitalize"
-  }, state.currentRole)), /*#__PURE__*/React.createElement("svg", {
+    className: "text-[10px] text-gray-500 font-medium"
+  }, state.currentRole === 'head' ? 'Head of Dept' : state.currentRole === 'hr' ? 'HR Admin' : 'Employee')), /*#__PURE__*/React.createElement("svg", {
     className: "w-3.5 h-3.5 text-gray-500 ml-0.5",
     fill: "none",
     stroke: "currentColor",
@@ -1605,109 +1605,132 @@ function Sidebar({
 }) {
   const {
     state,
-    store
+    store,
+    currentUser
   } = useStore();
   const getNavItems = () => {
     switch (state.currentRole) {
       case 'employee':
-        return [{
-          view: 'employee-home',
-          label: 'Home',
-          icon: 'home'
-        }, {
-          view: 'employee-profile',
-          label: 'My Profile',
-          icon: 'user'
-        }, {
-          view: 'employee-trainings',
-          label: 'My Trainings',
-          icon: 'graduation-cap'
-        }, {
-          view: 'employee-request',
-          label: 'Request Training',
-          icon: 'send'
-        }, {
-          view: 'employee-notifications',
-          label: 'Notifications',
-          icon: 'bell'
-        }];
+        {
+          const inProgressCount = state.trainings.filter(t => t.userId === currentUser.id && t.status === 'In Progress').length;
+          const unread = store.getUnreadCount();
+          return [{
+            view: 'employee-home',
+            label: 'Home',
+            icon: 'home'
+          }, {
+            view: 'employee-profile',
+            label: 'My Profile',
+            icon: 'user'
+          }, {
+            view: 'employee-trainings',
+            label: 'My Trainings',
+            icon: 'graduation-cap',
+            badge: inProgressCount || null
+          }, {
+            view: 'employee-request',
+            label: 'Request Training',
+            icon: 'file-plus'
+          }, {
+            view: 'employee-notifications',
+            label: 'Notifications',
+            icon: 'bell',
+            badge: unread || null,
+            badgeAlert: unread > 0
+          }];
+        }
       case 'head':
-        return [{
-          view: 'head-home',
-          label: 'Home',
-          icon: 'home'
-        }, {
-          view: 'head-profile',
-          label: 'My Profile',
-          icon: 'user'
-        }, {
-          view: 'head-trainings',
-          label: 'My Trainings',
-          icon: 'graduation-cap'
-        }, {
-          view: 'head-request',
-          label: 'Request Training',
-          icon: 'send'
-        }, {
-          view: 'head-team',
-          label: 'Team',
-          icon: 'users'
-        }, {
-          view: 'head-signoffs',
-          label: 'Sign-Off Queue',
-          icon: 'clock'
-        }, {
-          view: 'head-request-status',
-          label: 'Request Status',
-          icon: 'hourglass'
-        }, {
-          view: 'head-reports',
-          label: 'Team Reports',
-          icon: 'bar-chart-3'
-        }, {
-          view: 'head-notifications',
-          label: 'Notifications',
-          icon: 'bell'
-        }];
+        {
+          const pendingSignoffsCount = state.trainings.filter(t => t.department === currentUser.department && t.status === 'Pending Sign-off' && (t.daysElapsed || 0) < 7).length;
+          const unread = store.getUnreadCount();
+          return [{
+            view: 'head-home',
+            label: 'Home',
+            icon: 'home'
+          }, {
+            view: 'head-profile',
+            label: 'My Profile',
+            icon: 'user'
+          }, {
+            view: 'head-trainings',
+            label: 'My Trainings',
+            icon: 'graduation-cap'
+          }, {
+            view: 'head-request',
+            label: 'Request Training',
+            icon: 'file-plus'
+          }, {
+            view: 'head-team',
+            label: 'Team',
+            icon: 'users'
+          }, {
+            view: 'head-signoffs',
+            label: 'Sign-Off Queue',
+            icon: 'clock',
+            badge: pendingSignoffsCount || null,
+            badgeAlert: pendingSignoffsCount > 0
+          }, {
+            view: 'head-request-status',
+            label: 'Training Requested Status',
+            icon: 'hourglass'
+          }, {
+            view: 'head-reports',
+            label: 'Team Reports & Awards',
+            icon: 'bar-chart-2'
+          }, {
+            view: 'head-notifications',
+            label: 'Notifications',
+            icon: 'bell',
+            badge: unread || null,
+            badgeAlert: unread > 0
+          }];
+        }
       case 'hr':
       default:
-        return [{
-          view: 'hr-home',
-          label: 'Home',
-          icon: 'home'
-        }, {
-          view: 'hr-profile',
-          label: 'My Profile',
-          icon: 'user'
-        }, {
-          view: 'hr-cycle',
-          label: 'Cycle Control',
-          icon: 'refresh-cw'
-        }, {
-          view: 'hr-requests',
-          label: 'Requests Consolidation',
-          icon: 'layers'
-        }, {
-          view: 'hr-calendar',
-          label: 'Calendar & Allocation',
-          icon: 'calendar'
-        }, {
-          view: 'hr-directory',
-          label: 'Employee Directory',
-          icon: 'book-open'
-        }, {
-          view: 'hr-escalations',
-          label: 'Escalations Hub',
-          icon: 'alert-triangle'
-        }, {
-          view: 'hr-promotions',
-          label: 'Promotions & Awards',
-          icon: 'award'
-        }, {
-          view: 'hr-reports',
-          label: 'Reports & Export',
-          icon: 'file-text'
-        }];
+        {
+          const openEscalationsCount = state.trainings.filter(t => t.status === 'Escalated').length + state.requests.filter(r => r.status === 'Escalated').length;
+          const pendingRequestsCount = state.requests.filter(r => r.status === 'Pending HR Approval' || r.status === 'Pending Head Review').length;
+          return [{
+            view: 'hr-home',
+            label: 'Home',
+            icon: 'home'
+          }, {
+            view: 'hr-profile',
+            label: 'My Profile',
+            icon: 'user'
+          }, {
+            view: 'hr-cycle',
+            label: 'Cycle Control',
+            icon: 'refresh-cw'
+          }, {
+            view: 'hr-requests',
+            label: 'Requests Consolidation',
+            icon: 'layers',
+            badge: pendingRequestsCount || null
+          }, {
+            view: 'hr-calendar',
+            label: 'Calendar & Allocation',
+            icon: 'calendar'
+          }, {
+            view: 'hr-directory',
+            label: 'Employee Directory',
+            icon: 'book-open'
+          }, {
+            view: 'hr-escalations',
+            label: 'Escalations Hub',
+            icon: 'alert-triangle',
+            badge: openEscalationsCount || null,
+            badgeAlert: openEscalationsCount > 0
+          }, {
+            view: 'hr-promotions',
+            label: 'Promotions & Awards',
+            icon: 'award'
+          }, {
+            view: 'hr-reports',
+            label: 'Reports & Export',
+            icon: 'file-text'
+          }];
+        }
     }
   };
   const navItems = getNavItems();
@@ -1733,7 +1756,7 @@ function Sidebar({
     id: "sidebar-role-indicator",
     className: "text-xs font-bold text-[#14181F] flex items-center gap-1.5 mt-0.5"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "w-1.5 h-1.5 rounded-full bg-[#2F7D5A]"
+    className: `w-1.5 h-1.5 rounded-full ${state.currentRole === 'head' ? 'bg-[#B8860B]' : state.currentRole === 'hr' ? 'bg-[#3B5BDB]' : 'bg-[#2F7D5A]'}`
   }), /*#__PURE__*/React.createElement("span", null, getRoleBadge()))), /*#__PURE__*/React.createElement("button", {
     id: "btn-close-sidebar",
     onClick: onClose,
@@ -1746,6 +1769,7 @@ function Sidebar({
     className: "flex-1 overflow-y-auto p-2 space-y-0.5"
   }, navItems.map(item => {
     const isActive = state.currentView === item.view;
+    const activeClass = isActive ? 'bg-[#F2EFE9] text-[#14181F] font-semibold border-l-2 border-[#3B5BDB]' : 'text-gray-600 hover:text-black hover:bg-[#FBFBFA] font-medium';
     return /*#__PURE__*/React.createElement("button", {
       key: item.view,
       "data-view": item.view,
@@ -1753,11 +1777,17 @@ function Sidebar({
         store.setView(item.view);
         if (onClose) onClose();
       },
-      className: `nav-link w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 text-xs font-semibold transition-colors cursor-pointer ${isActive ? 'bg-[#14181F] text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black'}`
+      className: `nav-link w-full text-left px-3 py-2 rounded text-xs flex items-center justify-between ${activeClass} transition-colors cursor-pointer`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2.5 truncate"
     }, /*#__PURE__*/React.createElement(Icon, {
       name: item.icon,
-      className: `w-4 h-4 ${isActive ? 'text-white' : 'text-gray-500'}`
-    }), /*#__PURE__*/React.createElement("span", null, item.label));
+      className: `w-4 h-4 shrink-0 ${isActive ? 'text-[#3B5BDB]' : 'text-gray-400'}`
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "truncate"
+    }, item.label)), item.badge ? /*#__PURE__*/React.createElement("span", {
+      className: `px-1.5 py-0.2 rounded-full text-[10px] font-bold ${item.badgeAlert ? 'bg-[#FEE2E2] text-[#991B1B]' : 'bg-[#F1F5F9] text-gray-600'}`
+    }, item.badge) : null);
   })), /*#__PURE__*/React.createElement("div", {
     className: "p-3 border-t border-[#E4E1DA] bg-[#FBFBFA] text-[11px] text-gray-500 space-y-1"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1765,7 +1795,7 @@ function Sidebar({
   }, /*#__PURE__*/React.createElement("span", null, "Active Cycle"), /*#__PURE__*/React.createElement("span", {
     className: "status-pill status-in-progress",
     id: "sidebar-cycle-pill"
-  }, state.cycle ? state.cycle.name : 'SEP 2026')), /*#__PURE__*/React.createElement("div", {
+  }, state.cycle && state.cycle.isOpen ? 'CYCLE OPEN' : 'CYCLE CLOSED')), /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-gray-400 pt-0.5"
   }, "UltraTech Internal Ops Board v2.4")));
 }
@@ -2058,28 +2088,32 @@ function EmployeeProfile() {
   const {
     currentUser,
     store,
-    state,
-    previewDoc
+    state
   } = useStore();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(currentUser.name);
-  const [position, setPosition] = useState(currentUser.position);
+  const [name, setName] = useState(currentUser.name || '');
+  const [position, setPosition] = useState(currentUser.position || '');
   const [tenureYears, setTenureYears] = useState(currentUser.tenureYears || 3);
-  const [email, setEmail] = useState(currentUser.email);
-  const [department, setDepartment] = useState(currentUser.department);
+  const [email, setEmail] = useState(currentUser.email || '');
+  const [department, setDepartment] = useState(currentUser.department || '');
   const [skills, setSkills] = useState(currentUser.skills || []);
   const [newSkill, setNewSkill] = useState('');
   const [projects, setProjects] = useState(currentUser.projects || []);
   const [newProject, setNewProject] = useState('');
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   useEffect(() => {
-    setName(currentUser.name);
-    setPosition(currentUser.position);
+    setName(currentUser.name || '');
+    setPosition(currentUser.position || '');
     setTenureYears(currentUser.tenureYears || 3);
-    setEmail(currentUser.email);
-    setDepartment(currentUser.department);
+    setEmail(currentUser.email || '');
+    setDepartment(currentUser.department || '');
     setSkills(currentUser.skills || []);
     setProjects(currentUser.projects || []);
   }, [currentUser]);
+  const triggerSaved = () => {
+    setShowSavedIndicator(true);
+    setTimeout(() => setShowSavedIndicator(false), 3000);
+  };
   const handleSave = e => {
     e.preventDefault();
     store.updateProfile(currentUser.id, {
@@ -2092,217 +2126,280 @@ function EmployeeProfile() {
       projects
     });
     setIsEditing(false);
+    triggerSaved();
     showToast("Profile details updated successfully!", "success");
   };
   const handleAddSkill = e => {
     e.preventDefault();
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
+      const updated = [...skills, newSkill.trim()];
+      setSkills(updated);
       setNewSkill('');
+      store.updateProfile(currentUser.id, {
+        skills: updated
+      });
+      triggerSaved();
     }
   };
   const handleRemoveSkill = skillToRemove => {
-    setSkills(skills.filter(s => s !== skillToRemove));
+    const updated = skills.filter(s => s !== skillToRemove);
+    setSkills(updated);
+    store.updateProfile(currentUser.id, {
+      skills: updated
+    });
+    triggerSaved();
   };
   const handleAddProject = e => {
     e.preventDefault();
     if (newProject.trim() && !projects.includes(newProject.trim())) {
-      setProjects([...projects, newProject.trim()]);
+      const updated = [...projects, newProject.trim()];
+      setProjects(updated);
       setNewProject('');
+      store.updateProfile(currentUser.id, {
+        projects: updated
+      });
+      triggerSaved();
     }
   };
   const handleRemoveProject = projectToRemove => {
-    setProjects(projects.filter(p => p !== projectToRemove));
+    const updated = projects.filter(p => p !== projectToRemove);
+    setProjects(updated);
+    store.updateProfile(currentUser.id, {
+      projects: updated
+    });
+    triggerSaved();
   };
-  const completedTrainings = state.trainings.filter(t => t.userId === currentUser.id && t.status === 'Completed');
   return /*#__PURE__*/React.createElement("div", {
-    className: "space-y-6"
+    className: "space-y-5"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "p-6 bg-white border border-[#E4E1DA] rounded-xl shadow-xs"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-16 h-16 rounded-full bg-[#1E293B] text-white font-extrabold text-xl flex items-center justify-center border-2 border-gray-200 shadow-sm"
-  }, currentUser.avatarInitials || 'RS'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-    className: "text-xl font-black text-[#14181F]"
-  }, currentUser.name), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs font-semibold text-gray-700"
-  }, currentUser.position), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-gray-500"
-  }, currentUser.department, " · ", currentUser.tenureYears, " Years Tenure"))), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setIsEditing(!isEditing),
-    className: `${isEditing ? 'btn-ops-secondary' : 'btn-ops-primary'} self-start sm:self-auto`
+    className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E4E1DA]"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-xl font-bold text-[#14181F]"
+  }, "Employee Profile"), showSavedIndicator && /*#__PURE__*/React.createElement("span", {
+    id: "profile-save-indicator",
+    className: "inline-flex items-center gap-1 text-[11px] text-[#2F7D5A] font-semibold bg-[#EDF7F2] px-2 py-0.5 rounded border border-[#A3D9C1]"
   }, /*#__PURE__*/React.createElement(Icon, {
-    name: isEditing ? 'x' : 'edit-3',
-    className: "w-3.5 h-3.5"
-  }), /*#__PURE__*/React.createElement("span", null, isEditing ? 'Cancel Editing' : 'Edit Profile')))), isEditing ? /*#__PURE__*/React.createElement("form", {
-    onSubmit: handleSave,
-    className: "p-6 bg-white border border-[#E4E1DA] rounded-xl shadow-xs space-y-4"
+    name: "check",
+    className: "w-3 h-3"
+  }), /*#__PURE__*/React.createElement("span", null, "Saved automatically"))), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-0.5"
+  }, "View and update your technical competencies, NABL methods, and handled projects."))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "ops-panel p-4 space-y-4 self-start",
+    id: "profile-left-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 pb-3 border-b border-[#E4E1DA]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 bg-[#14181F] text-white rounded font-bold text-base flex items-center justify-center shrink-0",
+    id: "profile-avatar-badge"
+  }, currentUser.avatarInitials || 'PN'), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0"
   }, /*#__PURE__*/React.createElement("h2", {
-    className: "text-sm font-bold text-[#14181F] border-b pb-2"
-  }, "Edit Employment Details"), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 sm:grid-cols-2 gap-4"
+    className: "text-sm font-bold text-[#14181F] truncate",
+    id: "profile-display-name"
+  }, currentUser.name), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 truncate",
+    id: "profile-display-position"
+  }, currentUser.position)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    id: "btn-edit-profile-details",
+    className: "shrink-0 flex items-center gap-1 text-[11px] font-medium text-[#3B5BDB] hover:text-[#2E4ABC] border border-[#3B5BDB] hover:bg-[#EEF2FF] rounded px-2 py-1 transition-colors cursor-pointer",
+    onClick: () => setIsEditing(!isEditing),
+    title: "Edit profile details"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: isEditing ? 'x' : 'pencil',
+    className: "w-3 h-3"
+  }), /*#__PURE__*/React.createElement("span", null, isEditing ? 'Cancel' : 'Edit'))), !isEditing ? /*#__PURE__*/React.createElement("div", {
+    id: "profile-static-details",
+    className: "space-y-3 text-xs"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 font-medium block"
+  }, "Department"), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-gray-800 block mt-0.5",
+    id: "profile-static-dept"
+  }, currentUser.department)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 font-medium block"
+  }, "Reporting Head"), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-gray-800 block mt-0.5"
+  }, currentUser.headName || 'Vikram Seth')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 font-medium block"
+  }, "Professional Experience"), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-gray-800 block mt-0.5",
+    id: "profile-static-tenure"
+  }, currentUser.tenureYears, " Years")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 font-medium block"
+  }, "Email Address"), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-gray-800 block mt-0.5",
+    id: "profile-static-email"
+  }, currentUser.email)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 font-medium block"
+  }, "Completed Trainings"), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-[#2F7D5A] block mt-0.5"
+  }, currentUser.completedCount || 14, " Courses Verified"))) :
+  /*#__PURE__*/
+  /* Edit form */
+  React.createElement("form", {
+    onSubmit: handleSave,
+    id: "profile-edit-form",
+    className: "space-y-3 text-xs"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-semibold text-gray-800 mb-1"
-  }, "Full Legal Name"), /*#__PURE__*/React.createElement("input", {
+    className: "text-gray-400 font-medium block mb-1"
+  }, "Full Name"), /*#__PURE__*/React.createElement("input", {
     type: "text",
+    id: "edit-profile-name",
+    className: "ops-input text-xs w-full",
     value: name,
     onChange: e => setName(e.target.value),
-    className: "ops-input text-xs",
+    placeholder: "Full Name",
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-semibold text-gray-800 mb-1"
-  }, "Designation / Role Title"), /*#__PURE__*/React.createElement("input", {
+    className: "text-gray-400 font-medium block mb-1"
+  }, "Designation / Position"), /*#__PURE__*/React.createElement("input", {
     type: "text",
+    id: "edit-profile-position",
+    className: "ops-input text-xs w-full",
     value: position,
     onChange: e => setPosition(e.target.value),
-    className: "ops-input text-xs",
+    placeholder: "Designation",
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-semibold text-gray-800 mb-1"
-  }, "UltraTech Email"), /*#__PURE__*/React.createElement("input", {
-    type: "email",
-    value: email,
-    onChange: e => setEmail(e.target.value),
-    className: "ops-input text-xs",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-semibold text-gray-800 mb-1"
-  }, "Experience / Tenure (Years)"), /*#__PURE__*/React.createElement("input", {
+    className: "text-gray-400 font-medium block mb-1"
+  }, "Professional Experience (Years)"), /*#__PURE__*/React.createElement("input", {
     type: "number",
-    step: "0.5",
+    id: "edit-profile-tenure",
+    className: "ops-input text-xs w-full",
     value: tenureYears,
     onChange: e => setTenureYears(e.target.value),
-    className: "ops-input text-xs",
+    min: "0",
+    max: "50",
+    step: "0.1",
+    placeholder: "e.g. 4.2",
     required: true
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "sm:col-span-2"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-semibold text-gray-800 mb-1"
-  }, "Primary Department"), /*#__PURE__*/React.createElement("select", {
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "text-gray-400 font-medium block mb-1"
+  }, "Email Address"), /*#__PURE__*/React.createElement("input", {
+    type: "email",
+    id: "edit-profile-email",
+    className: "ops-input text-xs w-full",
+    value: email,
+    onChange: e => setEmail(e.target.value),
+    placeholder: "Email",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "text-gray-400 font-medium block mb-1"
+  }, "Department"), /*#__PURE__*/React.createElement("select", {
+    id: "edit-profile-dept",
+    className: "ops-select text-xs w-full",
     value: department,
-    onChange: e => setDepartment(e.target.value),
-    className: "ops-select text-xs"
+    onChange: e => setDepartment(e.target.value)
   }, state.departments.map(d => /*#__PURE__*/React.createElement("option", {
     key: d.id,
     value: d.name
-  }, d.name))))), /*#__PURE__*/React.createElement("div", {
-    className: "pt-4 border-t border-[#E4E1DA] flex justify-end gap-2"
+  }, d.name)))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 pt-2"
   }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setIsEditing(false),
-    className: "btn-ops-secondary"
-  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
     type: "submit",
-    className: "btn-ops-primary"
+    className: "btn-ops-primary flex-1 justify-center text-xs py-1.5 flex items-center gap-1 cursor-pointer"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "check",
-    className: "w-3.5 h-3.5"
-  }), "Save Changes"))) : null, /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "p-5 bg-white border border-[#E4E1DA] rounded-xl shadow-xs space-y-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between border-b pb-2"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "text-xs font-bold text-[#14181F] uppercase tracking-wider flex items-center gap-1.5"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "cpu",
-    className: "w-4 h-4 text-[#3B5BDB]"
-  }), "Technical Skill Matrix"), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] text-gray-400"
-  }, skills.length, " skills verified")), /*#__PURE__*/React.createElement("div", {
-    className: "flex flex-wrap gap-1.5 min-h-[48px]"
-  }, skills.map((s, i) => /*#__PURE__*/React.createElement("span", {
-    key: i,
-    className: "inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F7F6F3] border border-[#E4E1DA] rounded-md text-xs font-medium text-gray-800"
-  }, s, /*#__PURE__*/React.createElement("button", {
+    className: "w-3 h-3"
+  }), /*#__PURE__*/React.createElement("span", null, "Save Changes")), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => handleRemoveSkill(s),
-    className: "text-gray-400 hover:text-red-500"
+    onClick: () => setIsEditing(false),
+    className: "btn-ops-secondary flex-1 justify-center text-xs py-1.5 cursor-pointer"
+  }, "Cancel")))), /*#__PURE__*/React.createElement("div", {
+    className: "md:col-span-2 space-y-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "ops-panel p-4 space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xs font-bold uppercase tracking-wider text-[#14181F]"
+  }, "Technical Skills & Certifications"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-gray-500"
+  }, "Analytical instruments, NABL methods, and laboratory procedures")), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-gray-400"
+  }, skills.length, " skills listed")), /*#__PURE__*/React.createElement("div", {
+    id: "skills-tag-container",
+    className: "flex flex-wrap gap-1.5 pt-1"
+  }, skills.map((skill, idx) => /*#__PURE__*/React.createElement("span", {
+    key: idx,
+    className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#F7F6F3] border border-[#E4E1DA] text-xs font-medium text-[#14181F]"
+  }, /*#__PURE__*/React.createElement("span", null, skill), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "text-gray-400 hover:text-[#B3261E] cursor-pointer",
+    onClick: () => handleRemoveSkill(skill),
+    title: "Remove tag"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "x",
     className: "w-3 h-3"
   }))))), /*#__PURE__*/React.createElement("form", {
     onSubmit: handleAddSkill,
-    className: "flex gap-2 pt-2"
+    className: "flex items-center gap-2 pt-2"
   }, /*#__PURE__*/React.createElement("input", {
     type: "text",
-    placeholder: "Add skill (e.g. Stack Sampling)...",
+    id: "new-skill-input",
+    className: "ops-input text-xs flex-1",
+    placeholder: "Add technical skill or NABL method (e.g. ICP-MS, Toxicity Testing)...",
     value: newSkill,
-    onChange: e => setNewSkill(e.target.value),
-    className: "ops-input text-xs flex-1"
+    onChange: e => setNewSkill(e.target.value)
   }), /*#__PURE__*/React.createElement("button", {
     type: "submit",
-    className: "btn-ops-secondary text-xs px-3"
-  }, "Add"))), /*#__PURE__*/React.createElement("div", {
-    className: "p-5 bg-white border border-[#E4E1DA] rounded-xl shadow-xs space-y-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between border-b pb-2"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "text-xs font-bold text-[#14181F] uppercase tracking-wider flex items-center gap-1.5"
+    className: "btn-ops-secondary shrink-0 text-xs flex items-center gap-1 cursor-pointer"
   }, /*#__PURE__*/React.createElement(Icon, {
-    name: "briefcase",
-    className: "w-4 h-4 text-[#2F7D5A]"
-  }), "Active Project Deliverables"), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] text-gray-400"
-  }, projects.length, " assignments")), /*#__PURE__*/React.createElement("div", {
-    className: "space-y-1.5 min-h-[48px]"
-  }, projects.map((p, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    className: "p-2 bg-[#F7F6F3] border border-[#E4E1DA] rounded flex items-center justify-between text-xs"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "font-medium text-gray-800"
-  }, p), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => handleRemoveProject(p),
-    className: "text-gray-400 hover:text-red-500"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "x",
+    name: "plus",
     className: "w-3 h-3"
+  }), /*#__PURE__*/React.createElement("span", null, "Add Skill")))), /*#__PURE__*/React.createElement("div", {
+    className: "ops-panel p-4 space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xs font-bold uppercase tracking-wider text-[#14181F]"
+  }, "Major Projects Handled"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-gray-500"
+  }, "Field studies, EIA baselines, and environmental audits")), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-gray-400"
+  }, projects.length, " projects")), /*#__PURE__*/React.createElement("div", {
+    id: "projects-list-container",
+    className: "space-y-2 pt-1"
+  }, projects.map((proj, idx) => /*#__PURE__*/React.createElement("div", {
+    key: idx,
+    className: "p-2.5 bg-[#F7F6F3] border border-[#E4E1DA] rounded flex items-center justify-between gap-3 text-xs"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "folder-check",
+    className: "w-3.5 h-3.5 text-[#3B5BDB] shrink-0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-[#14181F]"
+  }, proj)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "text-gray-400 hover:text-[#B3261E] shrink-0 p-1 cursor-pointer",
+    onClick: () => handleRemoveProject(proj),
+    title: "Remove project"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash-2",
+    className: "w-3.5 h-3.5"
   }))))), /*#__PURE__*/React.createElement("form", {
     onSubmit: handleAddProject,
-    className: "flex gap-2 pt-2"
+    className: "flex items-center gap-2 pt-2"
   }, /*#__PURE__*/React.createElement("input", {
     type: "text",
-    placeholder: "Add project (e.g. Navi Mumbai ETP Audit)...",
+    id: "new-project-input",
+    className: "ops-input text-xs flex-1",
+    placeholder: "Add major project or environmental assignment...",
     value: newProject,
-    onChange: e => setNewProject(e.target.value),
-    className: "ops-input text-xs flex-1"
+    onChange: e => setNewProject(e.target.value)
   }), /*#__PURE__*/React.createElement("button", {
     type: "submit",
-    className: "btn-ops-secondary text-xs px-3"
-  }, "Add")))), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white border border-[#E4E1DA] rounded-xl shadow-xs overflow-hidden"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "p-4 border-b border-[#E4E1DA] flex items-center justify-between bg-[#FBFBFA]"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "text-xs font-bold text-[#14181F] uppercase tracking-wider flex items-center gap-2"
+    className: "btn-ops-secondary shrink-0 text-xs flex items-center gap-1 cursor-pointer"
   }, /*#__PURE__*/React.createElement(Icon, {
-    name: "award",
-    className: "w-4 h-4 text-[#2F7D5A]"
-  }), "Verified Training Credentials & Competency Log"), /*#__PURE__*/React.createElement("span", {
-    className: "status-pill status-completed"
-  }, completedTrainings.length, " Verified")), /*#__PURE__*/React.createElement("div", {
-    className: "divide-y divide-[#EFECE6]"
-  }, completedTrainings.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "p-6 text-center text-xs text-gray-400"
-  }, "No completed trainings logged yet.") : completedTrainings.map(t => /*#__PURE__*/React.createElement("div", {
-    key: t.id,
-    className: "p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
-    className: "font-bold text-xs text-[#14181F]"
-  }, t.title), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-gray-500"
-  }, "Sign-off: ", t.signedOffBy || 'HOD Priya Nair', " · Completed: ", t.completedDate || 'Sep 2026')), /*#__PURE__*/React.createElement("button", {
-    onClick: () => previewDoc(t.proof ? t.proof.certificateFile : 'Certificate_Completion.pdf', 'certificate', t.id),
-    className: "btn-ops-secondary text-xs py-1 px-3 self-start sm:self-auto"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "file-text",
-    className: "w-3.5 h-3.5 text-[#2F7D5A]"
-  }), "View Certificate"))))));
+    name: "plus",
+    className: "w-3 h-3"
+  }), /*#__PURE__*/React.createElement("span", null, "Add Project")))))));
 }
 
 // --- File: src/views/employee/EmployeeTrainings.jsx ---
@@ -2996,73 +3093,98 @@ function HeadSignoffs() {
     currentUser,
     state,
     openDrawer,
-    store
+    previewDoc
   } = useStore();
-  const pendingList = state.trainings.filter(t => t.department === currentUser.department && (t.status === 'Pending Sign-off' || t.status === 'Resubmit Requested'));
-  const handleQuickApprove = training => {
-    store.approveSignoff(training.id, 'Verified completion attendance and learning outcomes.');
-    if (window.confetti) {
-      window.confetti({
-        particleCount: 70,
-        spread: 60
-      });
-    }
-    showToast(`Approved sign-off for ${training.userName}!`, 'success');
-  };
+  const pendingList = state.trainings.filter(t => t.department === currentUser.department && t.status === 'Pending Sign-off');
   return /*#__PURE__*/React.createElement("div", {
-    className: "space-y-6"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-    className: "text-xl font-extrabold text-[#14181F]"
-  }, "Training Sign-Off Queue"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-gray-500 mt-0.5"
-  }, "Review completion proofs with 7-day auto-escalation countdown SLA")), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white border border-[#E4E1DA] rounded-xl shadow-xs overflow-hidden"
+    className: "space-y-5"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "divide-y divide-[#EFECE6]"
-  }, pendingList.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "p-12 text-center text-xs text-gray-400 space-y-1"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "check-circle",
-    className: "w-8 h-8 text-[#2F7D5A] mx-auto opacity-40"
-  }), /*#__PURE__*/React.createElement("p", {
-    className: "font-bold text-sm text-gray-700"
-  }, "Sign-Off Queue Clear"), /*#__PURE__*/React.createElement("p", null, "No pending proofs requiring Department Head verification.")) : pendingList.map(t => {
-    const cd = calculateCountdown(t.daysElapsed);
-    return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E4E1DA]"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-xl font-bold text-[#14181F]"
+  }, "Completion Sign-Off Queue"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-0.5"
+  }, "Review employee proof submissions within 7 days. Submissions older than 7 days automatically lock and escalate to Corporate HR."))), /*#__PURE__*/React.createElement("div", {
+    className: "ops-panel overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "ops-table"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Employee"), /*#__PURE__*/React.createElement("th", null, "Training Program"), /*#__PURE__*/React.createElement("th", null, "Submission Date"), /*#__PURE__*/React.createElement("th", null, "Countdown until Auto-Escalation"), /*#__PURE__*/React.createElement("th", null, "Proof Documents"), /*#__PURE__*/React.createElement("th", null, "Review Action"))), /*#__PURE__*/React.createElement("tbody", null, pendingList.length > 0 ? pendingList.map(t => {
+    const isOverdue = t.daysElapsed >= 7;
+    const daysLeft = Math.max(0, 7 - (t.daysElapsed || 0));
+    return /*#__PURE__*/React.createElement("tr", {
       key: t.id,
-      className: "p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/50"
+      className: isOverdue ? 'bg-[#FFF5F5]' : ''
+    }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-xs text-[#14181F]"
+    }, t.userName), /*#__PURE__*/React.createElement("div", {
+      className: "text-[10px] text-gray-500 leading-tight"
+    }, t.department)), /*#__PURE__*/React.createElement("td", {
+      className: "max-w-xs"
     }, /*#__PURE__*/React.createElement("div", {
-      className: "space-y-1 flex-1"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex flex-wrap items-center gap-2"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-bold text-sm text-[#14181F]"
-    }, t.userName), /*#__PURE__*/React.createElement("span", {
-      className: "text-xs text-gray-500"
-    }, "— ", t.title), /*#__PURE__*/React.createElement("span", {
-      className: `status-pill ${cd.pillClass}`
-    }, cd.status, " (", cd.daysLeft, "d left)")), /*#__PURE__*/React.createElement("p", {
-      className: "text-xs text-gray-600"
-    }, "Submitted: ", t.submissionDate || 'Recently', " · Category: ", t.category, " · Mode: ", t.mode), t.proof && t.proof.learnings && /*#__PURE__*/React.createElement("p", {
-      className: "text-xs text-gray-700 bg-gray-50 p-2 rounded border border-gray-100 line-clamp-1 italic"
-    }, "\"", t.proof.learnings, "\"")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-2 shrink-0"
+      className: "font-semibold text-xs text-[#14181F]"
+    }, t.title), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-gray-500"
+    }, t.category)), /*#__PURE__*/React.createElement("td", {
+      className: "whitespace-nowrap text-xs text-gray-600"
+    }, t.submissionDate), /*#__PURE__*/React.createElement("td", null, isOverdue || daysLeft === 0 ? /*#__PURE__*/React.createElement("span", {
+      className: "countdown-pill countdown-overdue",
+      title: "Exceeded 7-day review limit. Auto-escalated to Corporate HR."
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "alert-octagon",
+      className: "w-3 h-3 shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, "Overdue · Escalated to HR")) : daysLeft <= 1 ? /*#__PURE__*/React.createElement("span", {
+      className: "countdown-pill countdown-urgent",
+      title: `Urgent: Auto-escalates in ${daysLeft} day`
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "alert-circle",
+      className: "w-3 h-3 text-[#991B1B] shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, daysLeft, " day left!")) : daysLeft <= 3 ? /*#__PURE__*/React.createElement("span", {
+      className: "countdown-pill countdown-warning",
+      title: "Warning: Deadline approaching"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "clock",
+      className: "w-3 h-3 text-[#92400E] shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, daysLeft, " days left")) : /*#__PURE__*/React.createElement("span", {
+      className: "countdown-pill countdown-safe",
+      title: "Standard review window"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "hourglass",
+      className: "w-3 h-3 text-gray-500 shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, daysLeft, " days left"))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col gap-1"
     }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => previewDoc(t.proof ? t.proof.attendanceFile : 'Attendance.pdf', 'Attendance Sheet', t.id),
+      className: "text-[11px] text-[#3B5BDB] hover:underline flex items-center gap-1 text-left cursor-pointer"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "file-text",
+      className: "w-3.5 h-3.5 text-[#2F7D5A] shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, t.proof ? t.proof.attendanceFile : 'Attendance.pdf')), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => previewDoc(t.proof ? t.proof.certificateFile : 'Certificate.pdf', 'Certificate', t.id),
+      className: "text-[11px] text-[#3B5BDB] hover:underline flex items-center gap-1 text-left cursor-pointer"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "award",
+      className: "w-3.5 h-3.5 text-[#B8860B] shrink-0"
+    }), /*#__PURE__*/React.createElement("span", null, t.proof ? t.proof.certificateFile : 'Certificate.pdf')))), /*#__PURE__*/React.createElement("td", null, isOverdue ? /*#__PURE__*/React.createElement("div", {
+      className: "space-y-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-[#B3261E] font-bold block"
+    }, "Escalated to HR"), /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] text-gray-400 block"
+    }, "7-day SLA passed (Read-Only)")) : /*#__PURE__*/React.createElement("button", {
+      type: "button",
       onClick: () => openDrawer('proofReview', {
         trainingId: t.id
       }),
-      className: "btn-ops-secondary text-xs"
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "file-text",
-      className: "w-3.5 h-3.5"
-    }), "Review Documents"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => handleQuickApprove(t),
-      className: "btn-ops-primary text-xs"
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "check",
-      className: "w-3.5 h-3.5"
-    }), "Approve Sign-Off")));
-  }))));
+      className: "btn-ops-primary py-1 px-3 text-xs flex items-center justify-center cursor-pointer whitespace-nowrap"
+    }, "Review & Sign-Off")));
+  }) : /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "6",
+    className: "text-center py-8 text-gray-400 text-xs"
+  }, "No pending submissions in sign-off queue.")))))));
 }
 
 // --- File: src/views/head/HeadRequestStatus.jsx ---
@@ -3933,7 +4055,7 @@ function HrReports() {
     name: "download",
     className: "w-3.5 h-3.5"
   }), "Export Organization CSV")), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 sm:grid-cols-3 gap-4"
+    className: "grid grid-cols-1 sm:grid-cols-2 gap-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "p-4 bg-white border border-[#E4E1DA] rounded-xl shadow-xs"
   }, /*#__PURE__*/React.createElement("span", {
@@ -3950,15 +4072,7 @@ function HrReports() {
     className: "text-2xl font-black text-[#14181F] mt-2"
   }, "2,480 hrs"), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-gray-500 mt-1"
-  }, "NABL accredited hours logged")), /*#__PURE__*/React.createElement("div", {
-    className: "p-4 bg-white border border-[#E4E1DA] rounded-xl shadow-xs"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-bold text-gray-500 uppercase"
-  }, "Privacy Guarantee"), /*#__PURE__*/React.createElement("p", {
-    className: "text-2xl font-black text-[#3B5BDB] mt-2"
-  }, "0 Salary Fields"), /*#__PURE__*/React.createElement("p", {
-    className: "text-[11px] text-gray-500 mt-1"
-  }, "Structural zero compensation"))), /*#__PURE__*/React.createElement("div", {
+  }, "NABL accredited hours logged"))), /*#__PURE__*/React.createElement("div", {
     className: "bg-white border border-[#E4E1DA] rounded-xl shadow-xs p-5 space-y-4"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-bold text-sm text-[#14181F]"

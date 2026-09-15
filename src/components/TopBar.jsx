@@ -70,8 +70,8 @@ export function TopBar({ onToggleSidebar }) {
         {/* Persistent Scope Indicator */}
         <div id="scope-indicator-container" className="hidden sm:flex items-center gap-2 bg-[#F7F6F3] border border-[#E4E1DA] px-2.5 py-1 rounded">
           <span className="w-2 h-2 rounded-full bg-[#3B5BDB]"></span>
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider" id="scope-badge">Scope:</span>
-          <span className="text-xs font-semibold text-[#14181F] truncate max-w-[220px]" id="scope-text">{scopeInfo.scope}</span>
+          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider" id="scope-badge">{scopeInfo.badge}:</span>
+          <span className="text-xs font-semibold text-[#14181F] truncate max-w-[280px]" id="scope-text">{scopeInfo.scope}</span>
         </div>
 
         {/* HR / Admin Global Filter Dropdowns */}
@@ -153,7 +153,7 @@ export function TopBar({ onToggleSidebar }) {
             </div>
             <div className="hidden sm:flex flex-col text-left leading-tight">
               <span id="topbar-user-name" className="text-xs font-bold text-[#14181F]">{currentUser.name}</span>
-              <span id="topbar-user-role-label" className="text-[10px] text-gray-500 font-medium capitalize">{state.currentRole}</span>
+              <span id="topbar-user-role-label" className="text-[10px] text-gray-500 font-medium">{state.currentRole === 'head' ? 'Head of Dept' : state.currentRole === 'hr' ? 'HR Admin' : 'Employee'}</span>
             </div>
             <svg className="w-3.5 h-3.5 text-gray-500 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />

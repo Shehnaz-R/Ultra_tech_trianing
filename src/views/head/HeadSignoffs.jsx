@@ -1,81 +1,123 @@
 
 export function HeadSignoffs() {
-  const { currentUser, state, openDrawer, store } = useStore();
+  const { currentUser, state, openDrawer, previewDoc } = useStore();
 
   const pendingList = state.trainings.filter(t => 
-    t.department === currentUser.department && (t.status === 'Pending Sign-off' || t.status === 'Resubmit Requested')
+    t.department === currentUser.department && t.status === 'Pending Sign-off'
   );
 
-  const handleQuickApprove = (training) => {
-    store.approveSignoff(training.id, 'Verified completion attendance and learning outcomes.');
-    if (window.confetti) {
-      window.confetti({ particleCount: 70, spread: 60 });
-    }
-    showToast(`Approved sign-off for ${training.userName}!`, 'success');
-  };
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-extrabold text-[#14181F]">Training Sign-Off Queue</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Review completion proofs with 7-day auto-escalation countdown SLA
-        </p>
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E4E1DA]">
+        <div>
+          <h1 className="text-xl font-bold text-[#14181F]">Completion Sign-Off Queue</h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Review employee proof submissions within 7 days. Submissions older than 7 days automatically lock and escalate to Corporate HR.
+          </p>
+        </div>
       </div>
 
-      <div className="bg-white border border-[#E4E1DA] rounded-xl shadow-xs overflow-hidden">
-        <div className="divide-y divide-[#EFECE6]">
-          {pendingList.length === 0 ? (
-            <div className="p-12 text-center text-xs text-gray-400 space-y-1">
-              <Icon name="check-circle" className="w-8 h-8 text-[#2F7D5A] mx-auto opacity-40" />
-              <p className="font-bold text-sm text-gray-700">Sign-Off Queue Clear</p>
-              <p>No pending proofs requiring Department Head verification.</p>
-            </div>
-          ) : (
-            pendingList.map(t => {
-              const cd = calculateCountdown(t.daysElapsed);
-              return (
-                <div key={t.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/50">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-sm text-[#14181F]">{t.userName}</span>
-                      <span className="text-xs text-gray-500">— {t.title}</span>
-                      <span className={`status-pill ${cd.pillClass}`}>
-                        {cd.status} ({cd.daysLeft}d left)
-                      </span>
-                    </div>
+      <div className="ops-panel overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="ops-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Training Program</th>
+                <th>Submission Date</th>
+                <th>Countdown until Auto-Escalation</th>
+                <th>Proof Documents</th>
+                <th>Review Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingList.length > 0 ? (
+                pendingList.map(t => {
+                  const isOverdue = t.daysElapsed >= 7;
+                  const daysLeft = Math.max(0, 7 - (t.daysElapsed || 0));
 
-                    <p className="text-xs text-gray-600">
-                      Submitted: {t.submissionDate || 'Recently'} · Category: {t.category} · Mode: {t.mode}
-                    </p>
-
-                    {t.proof && t.proof.learnings && (
-                      <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded border border-gray-100 line-clamp-1 italic">
-                        "{t.proof.learnings}"
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button 
-                      onClick={() => openDrawer('proofReview', { trainingId: t.id })}
-                      className="btn-ops-secondary text-xs"
-                    >
-                      <Icon name="file-text" className="w-3.5 h-3.5" />
-                      Review Documents
-                    </button>
-                    <button 
-                      onClick={() => handleQuickApprove(t)}
-                      className="btn-ops-primary text-xs"
-                    >
-                      <Icon name="check" className="w-3.5 h-3.5" />
-                      Approve Sign-Off
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
+                  return (
+                    <tr key={t.id} className={isOverdue ? 'bg-[#FFF5F5]' : ''}>
+                      <td>
+                        <div className="font-bold text-xs text-[#14181F]">{t.userName}</div>
+                        <div className="text-[10px] text-gray-500 leading-tight">{t.department}</div>
+                      </td>
+                      <td className="max-w-xs">
+                        <div className="font-semibold text-xs text-[#14181F]">{t.title}</div>
+                        <div className="text-[11px] text-gray-500">{t.category}</div>
+                      </td>
+                      <td className="whitespace-nowrap text-xs text-gray-600">{t.submissionDate}</td>
+                      <td>
+                        {isOverdue || daysLeft === 0 ? (
+                          <span className="countdown-pill countdown-overdue" title="Exceeded 7-day review limit. Auto-escalated to Corporate HR.">
+                            <Icon name="alert-octagon" className="w-3 h-3 shrink-0" />
+                            <span>Overdue · Escalated to HR</span>
+                          </span>
+                        ) : daysLeft <= 1 ? (
+                          <span className="countdown-pill countdown-urgent" title={`Urgent: Auto-escalates in ${daysLeft} day`}>
+                            <Icon name="alert-circle" className="w-3 h-3 text-[#991B1B] shrink-0" />
+                            <span>{daysLeft} day left!</span>
+                          </span>
+                        ) : daysLeft <= 3 ? (
+                          <span className="countdown-pill countdown-warning" title="Warning: Deadline approaching">
+                            <Icon name="clock" className="w-3 h-3 text-[#92400E] shrink-0" />
+                            <span>{daysLeft} days left</span>
+                          </span>
+                        ) : (
+                          <span className="countdown-pill countdown-safe" title="Standard review window">
+                            <Icon name="hourglass" className="w-3 h-3 text-gray-500 shrink-0" />
+                            <span>{daysLeft} days left</span>
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="flex flex-col gap-1">
+                          <button 
+                            type="button"
+                            onClick={() => previewDoc(t.proof ? t.proof.attendanceFile : 'Attendance.pdf', 'Attendance Sheet', t.id)}
+                            className="text-[11px] text-[#3B5BDB] hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            <Icon name="file-text" className="w-3.5 h-3.5 text-[#2F7D5A] shrink-0" />
+                            <span>{t.proof ? t.proof.attendanceFile : 'Attendance.pdf'}</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => previewDoc(t.proof ? t.proof.certificateFile : 'Certificate.pdf', 'Certificate', t.id)}
+                            className="text-[11px] text-[#3B5BDB] hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            <Icon name="award" className="w-3.5 h-3.5 text-[#B8860B] shrink-0" />
+                            <span>{t.proof ? t.proof.certificateFile : 'Certificate.pdf'}</span>
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        {isOverdue ? (
+                          <div className="space-y-1">
+                            <span className="text-[11px] text-[#B3261E] font-bold block">Escalated to HR</span>
+                            <span className="text-[10px] text-gray-400 block">7-day SLA passed (Read-Only)</span>
+                          </div>
+                        ) : (
+                          <button 
+                            type="button"
+                            onClick={() => openDrawer('proofReview', { trainingId: t.id })}
+                            className="btn-ops-primary py-1 px-3 text-xs flex items-center justify-center cursor-pointer whitespace-nowrap"
+                          >
+                            Review & Sign-Off
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center py-8 text-gray-400 text-xs">
+                    No pending submissions in sign-off queue.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
